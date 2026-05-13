@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API VAPT Checklist</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --primary: #2563eb;
+      --primary-soft: #eaf1ff;
+      --border: #d7dce5;
+      --code-bg: #0f172a;
+      --code-text: #e5e7eb;
+      --done: #16a34a;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+    body.dark {
+      --bg: #0f172a;
+      --surface: #162033;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --primary: #60a5fa;
+      --primary-soft: #1e3a5f;
+      --border: #334155;
+      --code-bg: #020617;
+      --code-text: #e5e7eb;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      color: white;
+      padding: 24px 18px;
+      box-shadow: var(--shadow);
+    }
+    .header-inner { max-width: 1220px; margin: 0 auto; }
+    h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -0.02em; }
+    .subtitle { margin: 0 0 18px; opacity: 0.88; }
+    .controls { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; }
+    #searchBox {
+      width: 100%; padding: 11px 14px; border: 1px solid rgba(255,255,255,0.32); border-radius: 10px;
+      background: rgba(255,255,255,0.14); color: white; outline: none;
+    }
+    #searchBox::placeholder { color: rgba(255,255,255,0.72); }
+    button {
+      border: 0; border-radius: 10px; padding: 11px 14px; cursor: pointer; font-weight: 650;
+      background: rgba(255,255,255,0.16); color: white; border: 1px solid rgba(255,255,255,0.25);
+    }
+    button:hover { background: rgba(255,255,255,0.24); }
+    .stats { margin-top: 14px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; opacity: 0.94; }
+    .progress { height: 8px; background: rgba(255,255,255,0.22); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+    .progress > div { height: 100%; width: 0%; background: #22c55e; transition: width .2s ease; }
+    .layout { max-width: 1220px; margin: 22px auto; display: grid; grid-template-columns: 260px 1fr; gap: 22px; padding: 0 16px; }
+    nav { position: sticky; top: 156px; align-self: start; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; box-shadow: var(--shadow); max-height: calc(100vh - 180px); overflow: auto; }
+    nav h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 2px 0 12px; }
+    .nav-link { display: block; color: var(--text); text-decoration: none; padding: 8px 10px; border-radius: 10px; font-size: 14px; }
+    .nav-link:hover { background: var(--primary-soft); color: var(--primary); }
+    .category {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 18px; box-shadow: var(--shadow); overflow: hidden;
+    }
+    details summary {
+      list-style: none; cursor: pointer; padding: 17px 20px; font-size: 19px; font-weight: 750;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary:before { content: "▾"; color: var(--primary); margin-right: 4px; transition: transform .2s; }
+    details:not([open]) summary:before { transform: rotate(-90deg); }
+    .badge { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); white-space: nowrap; }
+    .section-note { color: var(--muted); padding: 0 20px; }
+    .checklist { list-style: none; padding: 4px 20px 18px; margin: 0; }
+    .check-item { border-bottom: 1px solid var(--border); padding: 13px 0; }
+    .check-item:last-child { border-bottom: 0; }
+    .check-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+    input[type="checkbox"] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--done); flex: 0 0 auto; }
+    .item-title { font-weight: 720; font-size: 16px; }
+    .item-detail { color: var(--muted); margin: 6px 0 0 28px; font-size: 14.5px; }
+    .item-detail p { margin: 6px 0; }
+    pre { margin: 8px 0; padding: 10px 12px; border-radius: 10px; background: var(--code-bg); color: var(--code-text); overflow-x: auto; font-size: 13px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .check-item.done .item-title { text-decoration: line-through; color: var(--muted); }
+    .hidden { display: none !important; }
+    footer { max-width: 1220px; margin: 20px auto 40px; padding: 0 16px; color: var(--muted); font-size: 14px; }
+    @media (max-width: 850px) {
+      .controls { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; max-height: none; }
+      header { position: static; }
+    }
+    @media print {
+      header, nav, footer { display: none; }
+      .layout { display: block; margin: 0; padding: 0; }
+      .category { box-shadow: none; break-inside: avoid; }
+      details { display: block; }
+      details > * { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>API VAPT Checklist</h1>
+      <p class="subtitle">Execution-oriented checklist for Pentesters and Bug Bounty Hunters</p>
+      <div class="controls">
+        <input type="text" id="searchBox" placeholder="Search checklist items, payloads, endpoints..." />
+        <button id="expandBtn" type="button">Expand all</button>
+        <button id="darkBtn" type="button">Dark mode</button>
+        <button id="resetBtn" type="button">Reset checks</button>
+      </div>
+      <div class="stats">
+        <span><strong id="doneCount">0</strong> / <strong id="totalCount">120</strong> completed</span>
+        <span>15 sections</span>
+        <span>Use only on authorized targets</span>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav>
+      <h2>Sections</h2>
+      <a href="#section-0" class="nav-link">Overview</a><a href="#section-1" class="nav-link">API Testing Setup &amp; Inventory</a><a href="#section-2" class="nav-link">API1: Broken Object Level Authorization (BOLA / IDOR)</a><a href="#section-3" class="nav-link">API2: Broken Authentication</a><a href="#section-4" class="nav-link">API3: Broken Object Property Level Authorization (BOPLA)</a><a href="#section-5" class="nav-link">API4: Unrestricted Resource Consumption</a><a href="#section-6" class="nav-link">API5: Broken Function Level Authorization (BFLA)</a><a href="#section-7" class="nav-link">API6: Unrestricted Access to Sensitive Business Flows</a><a href="#section-8" class="nav-link">API7: Server-Side Request Forgery (SSRF)</a><a href="#section-9" class="nav-link">API8: Security Misconfiguration</a><a href="#section-10" class="nav-link">API9: Improper Inventory Management</a><a href="#section-11" class="nav-link">API10: Unsafe Consumption of APIs</a><a href="#section-12" class="nav-link">Common API Functionality Checks</a><a href="#section-13" class="nav-link">Quick API Payload / Manipulation Reference</a><a href="#section-14" class="nav-link">Reference</a>
+    </nav>
+
+    <main id="content">
+      
+    <section class="category" id="section-0" data-section-title="overview">
+      <details open>
+        <summary>
+          <span>Overview</span>
+          <span class="badge">4 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="purpose use this checklist to test rest/json apis, mobile-backed apis, web apis, graphql endpoints, webhooks, callbacks, and third-party api integrations.">
+            <label class="check-row" for="cb-0-0">
+              <input type="checkbox" id="cb-0-0" data-check-id="cb-0-0" />
+              <span class="item-title">Purpose</span>
+            </label>
+            <div class="item-detail"><p>Use this checklist to test REST/JSON APIs, mobile-backed APIs, web APIs, GraphQL endpoints, webhooks, callbacks, and third-party API integrations.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="how to use capture the api request, perform the checklist item, compare responses across users/roles, and mark the item as checked only after validating the secure behavior.">
+            <label class="check-row" for="cb-0-1">
+              <input type="checkbox" id="cb-0-1" data-check-id="cb-0-1" />
+              <span class="item-title">How to use</span>
+            </label>
+            <div class="item-detail"><p>Capture the API request, perform the checklist item, compare responses across users/roles, and mark the item as checked only after validating the secure behavior.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="minimum accounts needed at least two normal users and one higher-privilege/admin test account where possible.">
+            <label class="check-row" for="cb-0-2">
+              <input type="checkbox" id="cb-0-2" data-check-id="cb-0-2" />
+              <span class="item-title">Minimum accounts needed</span>
+            </label>
+            <div class="item-detail"><p>At least two normal users and one higher-privilege/admin test account where possible.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="core tools burp suite, postman, curl, browser devtools, jwt.io, burp collaborator/interactsh, turbo intruder, ffuf/dirsearch, swagger/openapi tools.">
+            <label class="check-row" for="cb-0-3">
+              <input type="checkbox" id="cb-0-3" data-check-id="cb-0-3" />
+              <span class="item-title">Core tools</span>
+            </label>
+            <div class="item-detail"><p>Burp Suite, Postman, curl, browser DevTools, jwt.io, Burp Collaborator/interactsh, Turbo Intruder, ffuf/dirsearch, Swagger/OpenAPI tools.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-1" data-section-title="api testing setup &amp; inventory">
+      <details open>
+        <summary>
+          <span>API Testing Setup &amp; Inventory</span>
+          <span class="badge">10 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="capture complete api traffic use burp proxy, browser devtools, mobile proxy, or postman to capture every api request generated during normal app usage.">
+            <label class="check-row" for="cb-1-0">
+              <input type="checkbox" id="cb-1-0" data-check-id="cb-1-0" />
+              <span class="item-title">Capture complete API traffic</span>
+            </label>
+            <div class="item-detail"><p>Use Burp Proxy, browser DevTools, mobile proxy, or Postman to capture every API request generated during normal app usage.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="create test users for comparison use at least two normal users and one higher-privilege/admin test account, if available. keep separate tokens/cookies for each account.">
+            <label class="check-row" for="cb-1-1">
+              <input type="checkbox" id="cb-1-1" data-check-id="cb-1-1" />
+              <span class="item-title">Create test users for comparison</span>
+            </label>
+            <div class="item-detail"><p>Use at least two normal users and one higher-privilege/admin test account, if available. Keep separate tokens/cookies for each account.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="document base urls and versions record api domains and versions such as /api, /api/v1, /api/v2, /rest, /graphql, /mobile, /admin, /internal.">
+            <label class="check-row" for="cb-1-2">
+              <input type="checkbox" id="cb-1-2" data-check-id="cb-1-2" />
+              <span class="item-title">Document base URLs and versions</span>
+            </label>
+            <div class="item-detail"><p>Record API domains and versions such as /api, /api/v1, /api/v2, /rest, /graphql, /mobile, /admin, /internal.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="record authentication method identify whether apis use bearer jwt, session cookie, api key, oauth token, mtls, otp, sso, or custom headers.">
+            <label class="check-row" for="cb-1-3">
+              <input type="checkbox" id="cb-1-3" data-check-id="cb-1-3" />
+              <span class="item-title">Record authentication method</span>
+            </label>
+            <div class="item-detail"><p>Identify whether APIs use Bearer JWT, session cookie, API key, OAuth token, mTLS, OTP, SSO, or custom headers.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="build endpoint inventory for each api, note method, path, parameters, headers, body, auth requirement, role requirement, response fields, and status codes.">
+            <label class="check-row" for="cb-1-4">
+              <input type="checkbox" id="cb-1-4" data-check-id="cb-1-4" />
+              <span class="item-title">Build endpoint inventory</span>
+            </label>
+            <div class="item-detail"><p>For each API, note method, path, parameters, headers, body, auth requirement, role requirement, response fields, and status codes.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="find public api documentation check /swagger, /swagger-ui, /openapi.json, /api-docs, /v2/api-docs, /graphql, and documentation links exposed in js files.">
+            <label class="check-row" for="cb-1-5">
+              <input type="checkbox" id="cb-1-5" data-check-id="cb-1-5" />
+              <span class="item-title">Find public API documentation</span>
+            </label>
+            <div class="item-detail"><p>Check /swagger, /swagger-ui, /openapi.json, /api-docs, /v2/api-docs, /graphql, and documentation links exposed in JS files.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="identify old or hidden apis search burp history and js files for /v1, /v2, /beta, /legacy, /test, /staging, /mobile, /admin, /internal endpoints.">
+            <label class="check-row" for="cb-1-6">
+              <input type="checkbox" id="cb-1-6" data-check-id="cb-1-6" />
+              <span class="item-title">Identify old or hidden APIs</span>
+            </label>
+            <div class="item-detail"><p>Search Burp history and JS files for /v1, /v2, /beta, /legacy, /test, /staging, /mobile, /admin, /internal endpoints.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="group apis by functionality group endpoints into auth, user/profile, admin, upload, search, payment, notification, webhook, report/export, and third-party callback flows.">
+            <label class="check-row" for="cb-1-7">
+              <input type="checkbox" id="cb-1-7" data-check-id="cb-1-7" />
+              <span class="item-title">Group APIs by functionality</span>
+            </label>
+            <div class="item-detail"><p>Group endpoints into auth, user/profile, admin, upload, search, payment, notification, webhook, report/export, and third-party callback flows.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="identify content types record whether apis accept json, form-urlencoded, multipart, xml, graphql, protobuf, or raw body formats.">
+            <label class="check-row" for="cb-1-8">
+              <input type="checkbox" id="cb-1-8" data-check-id="cb-1-8" />
+              <span class="item-title">Identify content types</span>
+            </label>
+            <div class="item-detail"><p>Record whether APIs accept JSON, form-urlencoded, multipart, XML, GraphQL, protobuf, or raw body formats.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="confirm auth requirement per endpoint call each sensitive endpoint without token, with invalid token, and with low-privilege token to confirm access is blocked.">
+            <label class="check-row" for="cb-1-9">
+              <input type="checkbox" id="cb-1-9" data-check-id="cb-1-9" />
+              <span class="item-title">Confirm auth requirement per endpoint</span>
+            </label>
+            <div class="item-detail"><p>Call each sensitive endpoint without token, with invalid token, and with low-privilege token to confirm access is blocked.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-2" data-section-title="api1: broken object level authorization (bola / idor)">
+      <details open>
+        <summary>
+          <span>API1: Broken Object Level Authorization (BOLA / IDOR)</span>
+          <span class="badge">10 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="change object id in path use user a token and change /users/a/profile to /users/b/profile or /orders/1001 to /orders/1002. user a must not access user b&#x27;s object.">
+            <label class="check-row" for="cb-2-0">
+              <input type="checkbox" id="cb-2-0" data-check-id="cb-2-0" />
+              <span class="item-title">Change object ID in path</span>
+            </label>
+            <div class="item-detail"><p>Use User A token and change /users/A/profile to /users/B/profile or /orders/1001 to /orders/1002. User A must not access User B&#x27;s object.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="change object id in query parameters modify values like ?user_id=, ?order_id=, ?file_id=, ?invoice_id=, ?post_id=, ?transaction_id= and verify object-level authorization.">
+            <label class="check-row" for="cb-2-1">
+              <input type="checkbox" id="cb-2-1" data-check-id="cb-2-1" />
+              <span class="item-title">Change object ID in query parameters</span>
+            </label>
+            <div class="item-detail"><p>Modify values like ?user_id=, ?order_id=, ?file_id=, ?invoice_id=, ?post_id=, ?transaction_id= and verify object-level authorization.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="change object id in json body modify json fields such as userid, doctorid, organizationid, tenantid, accountid, fileid, or ownerid and replay the request.">
+            <label class="check-row" for="cb-2-2">
+              <input type="checkbox" id="cb-2-2" data-check-id="cb-2-2" />
+              <span class="item-title">Change object ID in JSON body</span>
+            </label>
+            <div class="item-detail"><p>Modify JSON fields such as userId, doctorId, organizationId, tenantId, accountId, fileId, or ownerId and replay the request.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="change object id in headers check headers such as x-user-id, x-account-id, x-tenant-id, x-org-id, x-role-id. backend must not trust user-controlled headers.">
+            <label class="check-row" for="cb-2-3">
+              <input type="checkbox" id="cb-2-3" data-check-id="cb-2-3" />
+              <span class="item-title">Change object ID in headers</span>
+            </label>
+            <div class="item-detail"><p>Check headers such as X-User-ID, X-Account-ID, X-Tenant-ID, X-Org-ID, X-Role-ID. Backend must not trust user-controlled headers.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test nested object ids modify nested values like { user: { id: 123 } }, { owner: { id: 123 } }, { tenant: { id: 123 } } and verify access checks.">
+            <label class="check-row" for="cb-2-4">
+              <input type="checkbox" id="cb-2-4" data-check-id="cb-2-4" />
+              <span class="item-title">Test nested object IDs</span>
+            </label>
+            <div class="item-detail"><p>Modify nested values like { user: { id: 123 } }, { owner: { id: 123 } }, { tenant: { id: 123 } } and verify access checks.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test encoded ids decode and modify base64, url-encoded, uuid, numeric, or hash-like ids. example: base64 user_id values in parameters or body.">
+            <label class="check-row" for="cb-2-5">
+              <input type="checkbox" id="cb-2-5" data-check-id="cb-2-5" />
+              <span class="item-title">Test encoded IDs</span>
+            </label>
+            <div class="item-detail"><p>Decode and modify base64, URL-encoded, UUID, numeric, or hash-like IDs. Example: base64 user_id values in parameters or body.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test list endpoints check whether list apis return only current user&#x27;s objects. try filters like user_id, owner_id, tenant_id, status, createdby.">
+            <label class="check-row" for="cb-2-6">
+              <input type="checkbox" id="cb-2-6" data-check-id="cb-2-6" />
+              <span class="item-title">Test list endpoints</span>
+            </label>
+            <div class="item-detail"><p>Check whether list APIs return only current user&#x27;s objects. Try filters like user_id, owner_id, tenant_id, status, createdBy.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test update/delete endpoints repeat bola checks on put, patch, and delete apis. many apps protect get but miss update/delete authorization.">
+            <label class="check-row" for="cb-2-7">
+              <input type="checkbox" id="cb-2-7" data-check-id="cb-2-7" />
+              <span class="item-title">Test update/delete endpoints</span>
+            </label>
+            <div class="item-detail"><p>Repeat BOLA checks on PUT, PATCH, and DELETE APIs. Many apps protect GET but miss update/delete authorization.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test tenant/org boundaries if app is multi-tenant, use tenant a token and attempt to access tenant b resources by changing tenant/org identifiers.">
+            <label class="check-row" for="cb-2-8">
+              <input type="checkbox" id="cb-2-8" data-check-id="cb-2-8" />
+              <span class="item-title">Test tenant/org boundaries</span>
+            </label>
+            <div class="item-detail"><p>If app is multi-tenant, use Tenant A token and attempt to access Tenant B resources by changing tenant/org identifiers.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test file/resource urls change file ids, document ids, signed url ids, attachment ids, or media ids to access another user&#x27;s uploaded files.">
+            <label class="check-row" for="cb-2-9">
+              <input type="checkbox" id="cb-2-9" data-check-id="cb-2-9" />
+              <span class="item-title">Test file/resource URLs</span>
+            </label>
+            <div class="item-detail"><p>Change file IDs, document IDs, signed URL IDs, attachment IDs, or media IDs to access another user&#x27;s uploaded files.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-3" data-section-title="api2: broken authentication">
+      <details open>
+        <summary>
+          <span>API2: Broken Authentication</span>
+          <span class="badge">11 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="call protected apis without token remove authorization header/cookie and verify protected apis return 401/403, not user data.">
+            <label class="check-row" for="cb-3-0">
+              <input type="checkbox" id="cb-3-0" data-check-id="cb-3-0" />
+              <span class="item-title">Call protected APIs without token</span>
+            </label>
+            <div class="item-detail"><p>Remove Authorization header/cookie and verify protected APIs return 401/403, not user data.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="use malformed or random token replace token with random text, truncated token, expired token, or different token type and confirm rejection.">
+            <label class="check-row" for="cb-3-1">
+              <input type="checkbox" id="cb-3-1" data-check-id="cb-3-1" />
+              <span class="item-title">Use malformed or random token</span>
+            </label>
+            <div class="item-detail"><p>Replace token with random text, truncated token, expired token, or different token type and confirm rejection.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="reuse token after logout login, capture token, logout, then replay the old token. it should be invalid or blocked as per policy.">
+            <label class="check-row" for="cb-3-2">
+              <input type="checkbox" id="cb-3-2" data-check-id="cb-3-2" />
+              <span class="item-title">Reuse token after logout</span>
+            </label>
+            <div class="item-detail"><p>Login, capture token, logout, then replay the old token. It should be invalid or blocked as per policy.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="reuse token after password reset reset password and replay previous access/refresh tokens. old sessions/tokens should be revoked or re-auth required.">
+            <label class="check-row" for="cb-3-3">
+              <input type="checkbox" id="cb-3-3" data-check-id="cb-3-3" />
+              <span class="item-title">Reuse token after password reset</span>
+            </label>
+            <div class="item-detail"><p>Reset password and replay previous access/refresh tokens. Old sessions/tokens should be revoked or re-auth required.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test refresh token flow check refresh token expiry, reuse, rotation, replay, and whether refresh token can generate unlimited access tokens.">
+            <label class="check-row" for="cb-3-4">
+              <input type="checkbox" id="cb-3-4" data-check-id="cb-3-4" />
+              <span class="item-title">Test refresh token flow</span>
+            </label>
+            <div class="item-detail"><p>Check refresh token expiry, reuse, rotation, replay, and whether refresh token can generate unlimited access tokens.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test jwt tampering decode jwt, change user_id/role/isadmin/tenant_id/exp and replay. api must reject modified tokens.">
+            <label class="check-row" for="cb-3-5">
+              <input type="checkbox" id="cb-3-5" data-check-id="cb-3-5" />
+              <span class="item-title">Test JWT tampering</span>
+            </label>
+            <div class="item-detail"><p>Decode JWT, change user_id/role/isAdmin/tenant_id/exp and replay. API must reject modified tokens.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test jwt alg=none/weak signing try alg=none or weak/incorrect signing only in authorized testing. api must validate algorithm and signature strictly.">
+            <label class="check-row" for="cb-3-6">
+              <input type="checkbox" id="cb-3-6" data-check-id="cb-3-6" />
+              <span class="item-title">Test JWT alg=none/weak signing</span>
+            </label>
+            <div class="item-detail"><p>Try alg=none or weak/incorrect signing only in authorized testing. API must validate algorithm and signature strictly.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check missing jwt claims validation verify exp, nbf, iss, aud, tenant, and user claims are validated correctly.">
+            <label class="check-row" for="cb-3-7">
+              <input type="checkbox" id="cb-3-7" data-check-id="cb-3-7" />
+              <span class="item-title">Check missing JWT claims validation</span>
+            </label>
+            <div class="item-detail"><p>Verify exp, nbf, iss, aud, tenant, and user claims are validated correctly.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check token leakage inspect urls, responses, errors, logs, browser storage, referer headers, and analytics calls for access/refresh tokens.">
+            <label class="check-row" for="cb-3-8">
+              <input type="checkbox" id="cb-3-8" data-check-id="cb-3-8" />
+              <span class="item-title">Check token leakage</span>
+            </label>
+            <div class="item-detail"><p>Inspect URLs, responses, errors, logs, browser storage, Referer headers, and analytics calls for access/refresh tokens.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test login brute force controls attempt repeated login attempts for same user/ip and verify lockout, throttling, captcha, or abuse protection.">
+            <label class="check-row" for="cb-3-9">
+              <input type="checkbox" id="cb-3-9" data-check-id="cb-3-9" />
+              <span class="item-title">Test login brute force controls</span>
+            </label>
+            <div class="item-detail"><p>Attempt repeated login attempts for same user/IP and verify lockout, throttling, CAPTCHA, or abuse protection.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test otp/mfa apis try repeated otp guesses, otp reuse, expired otp, null/000000 values, and direct access after only first-factor authentication.">
+            <label class="check-row" for="cb-3-10">
+              <input type="checkbox" id="cb-3-10" data-check-id="cb-3-10" />
+              <span class="item-title">Test OTP/MFA APIs</span>
+            </label>
+            <div class="item-detail"><p>Try repeated OTP guesses, OTP reuse, expired OTP, null/000000 values, and direct access after only first-factor authentication.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-4" data-section-title="api3: broken object property level authorization (bopla)">
+      <details open>
+        <summary>
+          <span>API3: Broken Object Property Level Authorization (BOPLA)</span>
+          <span class="badge">8 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="check excessive response fields review responses for unnecessary fields such as internal ids, email, phone, address, dob, role, permissions, tokens, flags, or debug fields.">
+            <label class="check-row" for="cb-4-0">
+              <input type="checkbox" id="cb-4-0" data-check-id="cb-4-0" />
+              <span class="item-title">Check excessive response fields</span>
+            </label>
+            <div class="item-detail"><p>Review responses for unnecessary fields such as internal IDs, email, phone, address, DOB, role, permissions, tokens, flags, or debug fields.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="compare response by role call the same api as guest, normal user, premium user, and admin. low-privilege users should not receive admin/internal properties.">
+            <label class="check-row" for="cb-4-1">
+              <input type="checkbox" id="cb-4-1" data-check-id="cb-4-1" />
+              <span class="item-title">Compare response by role</span>
+            </label>
+            <div class="item-detail"><p>Call the same API as guest, normal user, premium user, and admin. Low-privilege users should not receive admin/internal properties.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test mass assignment add hidden fields like isadmin, role, status, verified, plan, price, balance, permissions, organizationid, tenantid in request body.">
+            <label class="check-row" for="cb-4-2">
+              <input type="checkbox" id="cb-4-2" data-check-id="cb-4-2" />
+              <span class="item-title">Test mass assignment</span>
+            </label>
+            <div class="item-detail"><p>Add hidden fields like isAdmin, role, status, verified, plan, price, balance, permissions, organizationId, tenantId in request body.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test nested mass assignment add nested objects such as { profile: { role: &#x27;admin&#x27; } } or { permissions: [&#x27;admin&#x27;] } and verify backend ignores/rejects unauthorized fields.">
+            <label class="check-row" for="cb-4-3">
+              <input type="checkbox" id="cb-4-3" data-check-id="cb-4-3" />
+              <span class="item-title">Test nested mass assignment</span>
+            </label>
+            <div class="item-detail"><p>Add nested objects such as { profile: { role: &#x27;admin&#x27; } } or { permissions: [&#x27;admin&#x27;] } and verify backend ignores/rejects unauthorized fields.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test partial update abuse use patch/put to update fields not available in ui, such as emailverified, phoneverified, accountstatus, usertype, creditbalance.">
+            <label class="check-row" for="cb-4-4">
+              <input type="checkbox" id="cb-4-4" data-check-id="cb-4-4" />
+              <span class="item-title">Test partial update abuse</span>
+            </label>
+            <div class="item-detail"><p>Use PATCH/PUT to update fields not available in UI, such as emailVerified, phoneVerified, accountStatus, userType, creditBalance.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test read-only field modification modify ids, createdby, ownerid, createdat, approvedby, paymentstatus, or moderationstatus. server must not accept client-controlled system fields.">
+            <label class="check-row" for="cb-4-5">
+              <input type="checkbox" id="cb-4-5" data-check-id="cb-4-5" />
+              <span class="item-title">Test read-only field modification</span>
+            </label>
+            <div class="item-detail"><p>Modify IDs, createdBy, ownerId, createdAt, approvedBy, paymentStatus, or moderationStatus. Server must not accept client-controlled system fields.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check field-level authorization admin-only fields should not be visible or modifiable by normal users, even if the endpoint itself is accessible.">
+            <label class="check-row" for="cb-4-6">
+              <input type="checkbox" id="cb-4-6" data-check-id="cb-4-6" />
+              <span class="item-title">Check field-level authorization</span>
+            </label>
+            <div class="item-detail"><p>Admin-only fields should not be visible or modifiable by normal users, even if the endpoint itself is accessible.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check sensitive arrays/objects inspect arrays like permissions, roles, teams, groups, subscriptions, invoices, and linked accounts for excessive data or update abuse.">
+            <label class="check-row" for="cb-4-7">
+              <input type="checkbox" id="cb-4-7" data-check-id="cb-4-7" />
+              <span class="item-title">Check sensitive arrays/objects</span>
+            </label>
+            <div class="item-detail"><p>Inspect arrays like permissions, roles, teams, groups, subscriptions, invoices, and linked accounts for excessive data or update abuse.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-5" data-section-title="api4: unrestricted resource consumption">
+      <details open>
+        <summary>
+          <span>API4: Unrestricted Resource Consumption</span>
+          <span class="badge">9 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="test rate limits on auth apis send repeated requests to login, forgot password, otp send, otp verify, resend otp, and refresh-token endpoints.">
+            <label class="check-row" for="cb-5-0">
+              <input type="checkbox" id="cb-5-0" data-check-id="cb-5-0" />
+              <span class="item-title">Test rate limits on auth APIs</span>
+            </label>
+            <div class="item-detail"><p>Send repeated requests to login, forgot password, OTP send, OTP verify, resend OTP, and refresh-token endpoints.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test rate limits on expensive apis repeat search, filter, report, export, upload, download, pdf generation, and ai/content generation apis.">
+            <label class="check-row" for="cb-5-1">
+              <input type="checkbox" id="cb-5-1" data-check-id="cb-5-1" />
+              <span class="item-title">Test rate limits on expensive APIs</span>
+            </label>
+            <div class="item-detail"><p>Repeat search, filter, report, export, upload, download, PDF generation, and AI/content generation APIs.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test large payload handling send very large json/form/multipart payloads and confirm size limits, timeout handling, and no server crash.">
+            <label class="check-row" for="cb-5-2">
+              <input type="checkbox" id="cb-5-2" data-check-id="cb-5-2" />
+              <span class="item-title">Test large payload handling</span>
+            </label>
+            <div class="item-detail"><p>Send very large JSON/form/multipart payloads and confirm size limits, timeout handling, and no server crash.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test pagination limits modify limit/pagesize/per_page to large values such as 10000 or 999999. api should enforce max limits.">
+            <label class="check-row" for="cb-5-3">
+              <input type="checkbox" id="cb-5-3" data-check-id="cb-5-3" />
+              <span class="item-title">Test pagination limits</span>
+            </label>
+            <div class="item-detail"><p>Modify limit/pageSize/per_page to large values such as 10000 or 999999. API should enforce max limits.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test deep filters/sorting send complex filters, nested filters, broad date ranges, multiple sort fields, or regex-like searches and observe performance/limits.">
+            <label class="check-row" for="cb-5-4">
+              <input type="checkbox" id="cb-5-4" data-check-id="cb-5-4" />
+              <span class="item-title">Test deep filters/sorting</span>
+            </label>
+            <div class="item-detail"><p>Send complex filters, nested filters, broad date ranges, multiple sort fields, or regex-like searches and observe performance/limits.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test file upload size limits upload files above allowed size and verify rejection before heavy processing/storage.">
+            <label class="check-row" for="cb-5-5">
+              <input type="checkbox" id="cb-5-5" data-check-id="cb-5-5" />
+              <span class="item-title">Test file upload size limits</span>
+            </label>
+            <div class="item-detail"><p>Upload files above allowed size and verify rejection before heavy processing/storage.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test concurrency abuse send many parallel requests to expensive endpoints and verify throttling/queuing/limits.">
+            <label class="check-row" for="cb-5-6">
+              <input type="checkbox" id="cb-5-6" data-check-id="cb-5-6" />
+              <span class="item-title">Test concurrency abuse</span>
+            </label>
+            <div class="item-detail"><p>Send many parallel requests to expensive endpoints and verify throttling/queuing/limits.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test abuse via different identifiers try bypassing limits by changing ip headers, user-agent, device id, email case, phone format, or api version.">
+            <label class="check-row" for="cb-5-7">
+              <input type="checkbox" id="cb-5-7" data-check-id="cb-5-7" />
+              <span class="item-title">Test abuse via different identifiers</span>
+            </label>
+            <div class="item-detail"><p>Try bypassing limits by changing IP headers, user-agent, device ID, email case, phone format, or API version.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test resource cleanup trigger failed uploads/exports/jobs and verify temporary files/jobs do not accumulate or remain accessible.">
+            <label class="check-row" for="cb-5-8">
+              <input type="checkbox" id="cb-5-8" data-check-id="cb-5-8" />
+              <span class="item-title">Test resource cleanup</span>
+            </label>
+            <div class="item-detail"><p>Trigger failed uploads/exports/jobs and verify temporary files/jobs do not accumulate or remain accessible.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-6" data-section-title="api5: broken function level authorization (bfla)">
+      <details open>
+        <summary>
+          <span>API5: Broken Function Level Authorization (BFLA)</span>
+          <span class="badge">7 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="access admin apis as normal user use a normal-user token to call /admin, /api/admin, /management, /internal, /moderation, /reports, or role-management apis.">
+            <label class="check-row" for="cb-6-0">
+              <input type="checkbox" id="cb-6-0" data-check-id="cb-6-0" />
+              <span class="item-title">Access admin APIs as normal user</span>
+            </label>
+            <div class="item-detail"><p>Use a normal-user token to call /admin, /api/admin, /management, /internal, /moderation, /reports, or role-management APIs.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="call hidden functions directly call apis not visible in ui but present in js/burp history, such as delete user, approve request, export data, update role.">
+            <label class="check-row" for="cb-6-1">
+              <input type="checkbox" id="cb-6-1" data-check-id="cb-6-1" />
+              <span class="item-title">Call hidden functions directly</span>
+            </label>
+            <div class="item-detail"><p>Call APIs not visible in UI but present in JS/Burp history, such as delete user, approve request, export data, update role.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test function by http method try get/post/put/patch/delete on the same admin or sensitive endpoint. authorization must apply to every method.">
+            <label class="check-row" for="cb-6-2">
+              <input type="checkbox" id="cb-6-2" data-check-id="cb-6-2" />
+              <span class="item-title">Test function by HTTP method</span>
+            </label>
+            <div class="item-detail"><p>Try GET/POST/PUT/PATCH/DELETE on the same admin or sensitive endpoint. Authorization must apply to every method.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test role parameter tampering modify role, permission, isadmin, usertype, accounttype, plan, or status fields in api requests.">
+            <label class="check-row" for="cb-6-3">
+              <input type="checkbox" id="cb-6-3" data-check-id="cb-6-3" />
+              <span class="item-title">Test role parameter tampering</span>
+            </label>
+            <div class="item-detail"><p>Modify role, permission, isAdmin, userType, accountType, plan, or status fields in API requests.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test mobile/internal endpoints check whether /mobile, /internal, /legacy, /v1, or admin apis enforce the same permissions as current web apis.">
+            <label class="check-row" for="cb-6-4">
+              <input type="checkbox" id="cb-6-4" data-check-id="cb-6-4" />
+              <span class="item-title">Test mobile/internal endpoints</span>
+            </label>
+            <div class="item-detail"><p>Check whether /mobile, /internal, /legacy, /v1, or admin APIs enforce the same permissions as current web APIs.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test bulk actions call bulk-delete, bulk-update, import, export, approve-all, or status-change apis as low-privilege users.">
+            <label class="check-row" for="cb-6-5">
+              <input type="checkbox" id="cb-6-5" data-check-id="cb-6-5" />
+              <span class="item-title">Test bulk actions</span>
+            </label>
+            <div class="item-detail"><p>Call bulk-delete, bulk-update, import, export, approve-all, or status-change APIs as low-privilege users.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test approval/moderation apis try approving, rejecting, publishing, disabling, enabling, or deleting content/users without the required role.">
+            <label class="check-row" for="cb-6-6">
+              <input type="checkbox" id="cb-6-6" data-check-id="cb-6-6" />
+              <span class="item-title">Test approval/moderation APIs</span>
+            </label>
+            <div class="item-detail"><p>Try approving, rejecting, publishing, disabling, enabling, or deleting content/users without the required role.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-7" data-section-title="api6: unrestricted access to sensitive business flows">
+      <details open>
+        <summary>
+          <span>API6: Unrestricted Access to Sensitive Business Flows</span>
+          <span class="badge">8 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="test otp/email/sms flooding automate resend otp, forgot password, invitation, verification, or notification apis and verify rate limiting and abuse controls.">
+            <label class="check-row" for="cb-7-0">
+              <input type="checkbox" id="cb-7-0" data-check-id="cb-7-0" />
+              <span class="item-title">Test OTP/email/SMS flooding</span>
+            </label>
+            <div class="item-detail"><p>Automate resend OTP, forgot password, invitation, verification, or notification APIs and verify rate limiting and abuse controls.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test coupon/reward reuse replay apply-coupon, referral, wallet-credit, reward-claim, or benefit apis and verify one-time/limit enforcement.">
+            <label class="check-row" for="cb-7-1">
+              <input type="checkbox" id="cb-7-1" data-check-id="cb-7-1" />
+              <span class="item-title">Test coupon/reward reuse</span>
+            </label>
+            <div class="item-detail"><p>Replay apply-coupon, referral, wallet-credit, reward-claim, or benefit APIs and verify one-time/limit enforcement.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test payment/checkout manipulation modify price, quantity, discount, currency, paymentstatus, planid, subscriptionid, or invoiceid during payment-related api calls.">
+            <label class="check-row" for="cb-7-2">
+              <input type="checkbox" id="cb-7-2" data-check-id="cb-7-2" />
+              <span class="item-title">Test payment/checkout manipulation</span>
+            </label>
+            <div class="item-detail"><p>Modify price, quantity, discount, currency, paymentStatus, planId, subscriptionId, or invoiceId during payment-related API calls.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test transaction replay replay successful transaction, order, booking, subscription, or reset requests and verify idempotency/replay protection.">
+            <label class="check-row" for="cb-7-3">
+              <input type="checkbox" id="cb-7-3" data-check-id="cb-7-3" />
+              <span class="item-title">Test transaction replay</span>
+            </label>
+            <div class="item-detail"><p>Replay successful transaction, order, booking, subscription, or reset requests and verify idempotency/replay protection.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test workflow skipping call final-step apis directly without completing required previous steps, such as reset password without otp or confirm order without payment.">
+            <label class="check-row" for="cb-7-4">
+              <input type="checkbox" id="cb-7-4" data-check-id="cb-7-4" />
+              <span class="item-title">Test workflow skipping</span>
+            </label>
+            <div class="item-detail"><p>Call final-step APIs directly without completing required previous steps, such as reset password without OTP or confirm order without payment.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test race conditions send parallel requests for one-time actions such as coupon redemption, wallet withdrawal, otp verification, invite acceptance, or booking.">
+            <label class="check-row" for="cb-7-5">
+              <input type="checkbox" id="cb-7-5" data-check-id="cb-7-5" />
+              <span class="item-title">Test race conditions</span>
+            </label>
+            <div class="item-detail"><p>Send parallel requests for one-time actions such as coupon redemption, wallet withdrawal, OTP verification, invite acceptance, or booking.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test negative/invalid values use negative amount, zero quantity, huge quantity, invalid status, past/future dates, or unsupported enum values.">
+            <label class="check-row" for="cb-7-6">
+              <input type="checkbox" id="cb-7-6" data-check-id="cb-7-6" />
+              <span class="item-title">Test negative/invalid values</span>
+            </label>
+            <div class="item-detail"><p>Use negative amount, zero quantity, huge quantity, invalid status, past/future dates, or unsupported enum values.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test automation defenses check whether sensitive flows require captcha, device checks, rate limits, behavioral checks, or re-authentication where needed.">
+            <label class="check-row" for="cb-7-7">
+              <input type="checkbox" id="cb-7-7" data-check-id="cb-7-7" />
+              <span class="item-title">Test automation defenses</span>
+            </label>
+            <div class="item-detail"><p>Check whether sensitive flows require CAPTCHA, device checks, rate limits, behavioral checks, or re-authentication where needed.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-8" data-section-title="api7: server-side request forgery (ssrf)">
+      <details open>
+        <summary>
+          <span>API7: Server-Side Request Forgery (SSRF)</span>
+          <span class="badge">8 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="find url-fetching inputs look for apis accepting url/webhook/link/imageurl/avatarurl/importurl/callbackurl/redirecturl/feedurl/pdfurl.">
+            <label class="check-row" for="cb-8-0">
+              <input type="checkbox" id="cb-8-0" data-check-id="cb-8-0" />
+              <span class="item-title">Find URL-fetching inputs</span>
+            </label>
+            <div class="item-detail"><p>Look for APIs accepting URL/webhook/link/imageUrl/avatarUrl/importUrl/callbackUrl/redirectUrl/feedUrl/pdfUrl.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test external callback use burp collaborator/interactsh/ngrok url to confirm whether the server makes outbound requests.">
+            <label class="check-row" for="cb-8-1">
+              <input type="checkbox" id="cb-8-1" data-check-id="cb-8-1" />
+              <span class="item-title">Test external callback</span>
+            </label>
+            <div class="item-detail"><p>Use Burp Collaborator/interactsh/ngrok URL to confirm whether the server makes outbound requests.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test localhost/internal ip blocking try safe internal targets such as http://127.0.0.1, http://localhost, http://10.0.0.1, http://172.16.0.1, http://192.168.1.1.">
+            <label class="check-row" for="cb-8-2">
+              <input type="checkbox" id="cb-8-2" data-check-id="cb-8-2" />
+              <span class="item-title">Test localhost/internal IP blocking</span>
+            </label>
+            <div class="item-detail"><p>Try safe internal targets such as http://127.0.0.1, http://localhost, http://10.0.0.1, http://172.16.0.1, http://192.168.1.1.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test cloud metadata blocking check whether cloud metadata urls such as http://169.254.169.254 are blocked.">
+            <label class="check-row" for="cb-8-3">
+              <input type="checkbox" id="cb-8-3" data-check-id="cb-8-3" />
+              <span class="item-title">Test cloud metadata blocking</span>
+            </label>
+            <div class="item-detail"><p>Check whether cloud metadata URLs such as http://169.254.169.254 are blocked.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test protocol restrictions try file://, ftp://, gopher://, dict:// where applicable. only required safe protocols should be allowed.">
+            <label class="check-row" for="cb-8-4">
+              <input type="checkbox" id="cb-8-4" data-check-id="cb-8-4" />
+              <span class="item-title">Test protocol restrictions</span>
+            </label>
+            <div class="item-detail"><p>Try file://, ftp://, gopher://, dict:// where applicable. Only required safe protocols should be allowed.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test redirect-based ssrf provide an allowed external url that redirects to internal ip and verify final destination is revalidated.">
+            <label class="check-row" for="cb-8-5">
+              <input type="checkbox" id="cb-8-5" data-check-id="cb-8-5" />
+              <span class="item-title">Test redirect-based SSRF</span>
+            </label>
+            <div class="item-detail"><p>Provide an allowed external URL that redirects to internal IP and verify final destination is revalidated.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test dns/ip bypasses try encoded ips, decimal/octal ips, ipv6 localhost, mixed case hostnames, and dns rebinding only in authorized testing.">
+            <label class="check-row" for="cb-8-6">
+              <input type="checkbox" id="cb-8-6" data-check-id="cb-8-6" />
+              <span class="item-title">Test DNS/IP bypasses</span>
+            </label>
+            <div class="item-detail"><p>Try encoded IPs, decimal/octal IPs, IPv6 localhost, mixed case hostnames, and DNS rebinding only in authorized testing.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check response leakage verify internal response content, error messages, service banners, or timing differences are not returned to the user.">
+            <label class="check-row" for="cb-8-7">
+              <input type="checkbox" id="cb-8-7" data-check-id="cb-8-7" />
+              <span class="item-title">Check response leakage</span>
+            </label>
+            <div class="item-detail"><p>Verify internal response content, error messages, service banners, or timing differences are not returned to the user.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-9" data-section-title="api8: security misconfiguration">
+      <details open>
+        <summary>
+          <span>API8: Security Misconfiguration</span>
+          <span class="badge">9 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="check exposed api docs verify swagger/openapi docs are not publicly exposing sensitive/admin/internal apis in production.">
+            <label class="check-row" for="cb-9-0">
+              <input type="checkbox" id="cb-9-0" data-check-id="cb-9-0" />
+              <span class="item-title">Check exposed API docs</span>
+            </label>
+            <div class="item-detail"><p>Verify Swagger/OpenAPI docs are not publicly exposing sensitive/admin/internal APIs in production.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check debug/verbose errors send malformed json, invalid types, missing required fields, and invalid tokens; responses must not expose stack traces or internal paths.">
+            <label class="check-row" for="cb-9-1">
+              <input type="checkbox" id="cb-9-1" data-check-id="cb-9-1" />
+              <span class="item-title">Check debug/verbose errors</span>
+            </label>
+            <div class="item-detail"><p>Send malformed JSON, invalid types, missing required fields, and invalid tokens; responses must not expose stack traces or internal paths.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check cors configuration send origin headers from untrusted domains and verify sensitive apis do not allow unsafe origins with credentials.">
+            <label class="check-row" for="cb-9-2">
+              <input type="checkbox" id="cb-9-2" data-check-id="cb-9-2" />
+              <span class="item-title">Check CORS configuration</span>
+            </label>
+            <div class="item-detail"><p>Send Origin headers from untrusted domains and verify sensitive APIs do not allow unsafe origins with credentials.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check http methods use options and method tampering to ensure unnecessary put/delete/trace methods are disabled or protected.">
+            <label class="check-row" for="cb-9-3">
+              <input type="checkbox" id="cb-9-3" data-check-id="cb-9-3" />
+              <span class="item-title">Check HTTP methods</span>
+            </label>
+            <div class="item-detail"><p>Use OPTIONS and method tampering to ensure unnecessary PUT/DELETE/TRACE methods are disabled or protected.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check default/sample endpoints search for /health, /actuator, /metrics, /debug, /env, /config, /server-status, /phpinfo, /test, /sample endpoints.">
+            <label class="check-row" for="cb-9-4">
+              <input type="checkbox" id="cb-9-4" data-check-id="cb-9-4" />
+              <span class="item-title">Check default/sample endpoints</span>
+            </label>
+            <div class="item-detail"><p>Search for /health, /actuator, /metrics, /debug, /env, /config, /server-status, /phpinfo, /test, /sample endpoints.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check security headers verify hsts, x-content-type-options, csp/frame protections, referrer-policy, and secure cookie flags where applicable.">
+            <label class="check-row" for="cb-9-5">
+              <input type="checkbox" id="cb-9-5" data-check-id="cb-9-5" />
+              <span class="item-title">Check security headers</span>
+            </label>
+            <div class="item-detail"><p>Verify HSTS, X-Content-Type-Options, CSP/frame protections, Referrer-Policy, and secure cookie flags where applicable.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check server/framework leakage review headers and error responses for server versions, framework versions, internal hostnames, and environment names.">
+            <label class="check-row" for="cb-9-6">
+              <input type="checkbox" id="cb-9-6" data-check-id="cb-9-6" />
+              <span class="item-title">Check server/framework leakage</span>
+            </label>
+            <div class="item-detail"><p>Review headers and error responses for server versions, framework versions, internal hostnames, and environment names.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check tls/https enforcement apis must redirect or block http and never transmit tokens, credentials, or pii over unencrypted channels.">
+            <label class="check-row" for="cb-9-7">
+              <input type="checkbox" id="cb-9-7" data-check-id="cb-9-7" />
+              <span class="item-title">Check TLS/HTTPS enforcement</span>
+            </label>
+            <div class="item-detail"><p>APIs must redirect or block HTTP and never transmit tokens, credentials, or PII over unencrypted channels.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check environment misrouting verify dev/stage/uat apis are not publicly exposed with weak controls or production data.">
+            <label class="check-row" for="cb-9-8">
+              <input type="checkbox" id="cb-9-8" data-check-id="cb-9-8" />
+              <span class="item-title">Check environment misrouting</span>
+            </label>
+            <div class="item-detail"><p>Verify dev/stage/UAT APIs are not publicly exposed with weak controls or production data.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-10" data-section-title="api9: improper inventory management">
+      <details open>
+        <summary>
+          <span>API9: Improper Inventory Management</span>
+          <span class="badge">8 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="find old api versions search for /v1, /v2, /v3, /old, /legacy, /beta, /deprecated endpoints and verify they are protected or removed.">
+            <label class="check-row" for="cb-10-0">
+              <input type="checkbox" id="cb-10-0" data-check-id="cb-10-0" />
+              <span class="item-title">Find old API versions</span>
+            </label>
+            <div class="item-detail"><p>Search for /v1, /v2, /v3, /old, /legacy, /beta, /deprecated endpoints and verify they are protected or removed.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="compare security across versions test whether old api versions have weaker auth, missing mfa, no rate limit, extra fields, or broken authorization.">
+            <label class="check-row" for="cb-10-1">
+              <input type="checkbox" id="cb-10-1" data-check-id="cb-10-1" />
+              <span class="item-title">Compare security across versions</span>
+            </label>
+            <div class="item-detail"><p>Test whether old API versions have weaker auth, missing MFA, no rate limit, extra fields, or broken authorization.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="find shadow apis inspect js/mobile traffic for apis not documented in swagger/openapi or not known to the team.">
+            <label class="check-row" for="cb-10-2">
+              <input type="checkbox" id="cb-10-2" data-check-id="cb-10-2" />
+              <span class="item-title">Find shadow APIs</span>
+            </label>
+            <div class="item-detail"><p>Inspect JS/mobile traffic for APIs not documented in Swagger/OpenAPI or not known to the team.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="find test/staging apis check test, dev, uat, qa, staging, preprod, sandbox api domains and verify no public sensitive exposure.">
+            <label class="check-row" for="cb-10-3">
+              <input type="checkbox" id="cb-10-3" data-check-id="cb-10-3" />
+              <span class="item-title">Find test/staging APIs</span>
+            </label>
+            <div class="item-detail"><p>Check test, dev, UAT, QA, staging, preprod, sandbox API domains and verify no public sensitive exposure.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check api documentation accuracy compare documented endpoints with actual traffic; undocumented sensitive apis should be reviewed and protected.">
+            <label class="check-row" for="cb-10-4">
+              <input type="checkbox" id="cb-10-4" data-check-id="cb-10-4" />
+              <span class="item-title">Check API documentation accuracy</span>
+            </label>
+            <div class="item-detail"><p>Compare documented endpoints with actual traffic; undocumented sensitive APIs should be reviewed and protected.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check deprecated endpoints verify removed ui features do not still have active backend apis.">
+            <label class="check-row" for="cb-10-5">
+              <input type="checkbox" id="cb-10-5" data-check-id="cb-10-5" />
+              <span class="item-title">Check deprecated endpoints</span>
+            </label>
+            <div class="item-detail"><p>Verify removed UI features do not still have active backend APIs.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check inconsistent base urls look for multiple api hosts such as api, admin-api, internal-api, mobile-api, partner-api and verify consistent controls.">
+            <label class="check-row" for="cb-10-6">
+              <input type="checkbox" id="cb-10-6" data-check-id="cb-10-6" />
+              <span class="item-title">Check inconsistent base URLs</span>
+            </label>
+            <div class="item-detail"><p>Look for multiple API hosts such as api, admin-api, internal-api, mobile-api, partner-api and verify consistent controls.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check asset/api leakage in js review frontend js and source maps for hidden endpoints, old domains, internal api hosts, and hardcoded api keys.">
+            <label class="check-row" for="cb-10-7">
+              <input type="checkbox" id="cb-10-7" data-check-id="cb-10-7" />
+              <span class="item-title">Check asset/API leakage in JS</span>
+            </label>
+            <div class="item-detail"><p>Review frontend JS and source maps for hidden endpoints, old domains, internal API hosts, and hardcoded API keys.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-11" data-section-title="api10: unsafe consumption of apis">
+      <details open>
+        <summary>
+          <span>API10: Unsafe Consumption of APIs</span>
+          <span class="badge">8 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="check third-party callback validation for payment, oauth, sms, email, webhook, or partner callbacks, verify signature validation and source verification.">
+            <label class="check-row" for="cb-11-0">
+              <input type="checkbox" id="cb-11-0" data-check-id="cb-11-0" />
+              <span class="item-title">Check third-party callback validation</span>
+            </label>
+            <div class="item-detail"><p>For payment, OAuth, SMS, email, webhook, or partner callbacks, verify signature validation and source verification.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test webhook replay protection replay captured webhook/callback payloads and verify timestamp, nonce, and signature prevent reuse.">
+            <label class="check-row" for="cb-11-1">
+              <input type="checkbox" id="cb-11-1" data-check-id="cb-11-1" />
+              <span class="item-title">Test webhook replay protection</span>
+            </label>
+            <div class="item-detail"><p>Replay captured webhook/callback payloads and verify timestamp, nonce, and signature prevent reuse.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="test callback parameter tampering modify paymentstatus, amount, orderid, userid, planid, subscriptionid, or provider response fields before callback processing.">
+            <label class="check-row" for="cb-11-2">
+              <input type="checkbox" id="cb-11-2" data-check-id="cb-11-2" />
+              <span class="item-title">Test callback parameter tampering</span>
+            </label>
+            <div class="item-detail"><p>Modify paymentStatus, amount, orderId, userId, planId, subscriptionId, or provider response fields before callback processing.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check fail-open behavior simulate third-party timeout/error/invalid response and verify the application does not mark payment/login/verification as successful.">
+            <label class="check-row" for="cb-11-3">
+              <input type="checkbox" id="cb-11-3" data-check-id="cb-11-3" />
+              <span class="item-title">Check fail-open behavior</span>
+            </label>
+            <div class="item-detail"><p>Simulate third-party timeout/error/invalid response and verify the application does not mark payment/login/verification as successful.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check external response trust verify the app validates and sanitizes third-party api responses before using them in decisions or rendering.">
+            <label class="check-row" for="cb-11-4">
+              <input type="checkbox" id="cb-11-4" data-check-id="cb-11-4" />
+              <span class="item-title">Check external response trust</span>
+            </label>
+            <div class="item-detail"><p>Verify the app validates and sanitizes third-party API responses before using them in decisions or rendering.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check oauth provider data trust verify email_verified, subject id, issuer, audience, and provider identity are validated before account login/linking.">
+            <label class="check-row" for="cb-11-5">
+              <input type="checkbox" id="cb-11-5" data-check-id="cb-11-5" />
+              <span class="item-title">Check OAuth provider data trust</span>
+            </label>
+            <div class="item-detail"><p>Verify email_verified, subject ID, issuer, audience, and provider identity are validated before account login/linking.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check webhook url registration if users can register webhook urls, verify ssrf protections, ownership checks, and safe outbound requests.">
+            <label class="check-row" for="cb-11-6">
+              <input type="checkbox" id="cb-11-6" data-check-id="cb-11-6" />
+              <span class="item-title">Check webhook URL registration</span>
+            </label>
+            <div class="item-detail"><p>If users can register webhook URLs, verify SSRF protections, ownership checks, and safe outbound requests.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="check sensitive data sent externally confirm apis do not send unnecessary pii, tokens, internal ids, or secrets to third-party services.">
+            <label class="check-row" for="cb-11-7">
+              <input type="checkbox" id="cb-11-7" data-check-id="cb-11-7" />
+              <span class="item-title">Check sensitive data sent externally</span>
+            </label>
+            <div class="item-detail"><p>Confirm APIs do not send unnecessary PII, tokens, internal IDs, or secrets to third-party services.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-12" data-section-title="common api functionality checks">
+      <details open>
+        <summary>
+          <span>Common API Functionality Checks</span>
+          <span class="badge">10 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="login api test brute force, account enumeration, rate limiting, invalid credentials, malformed json, token leakage, and response consistency.">
+            <label class="check-row" for="cb-12-0">
+              <input type="checkbox" id="cb-12-0" data-check-id="cb-12-0" />
+              <span class="item-title">Login API</span>
+            </label>
+            <div class="item-detail"><p>Test brute force, account enumeration, rate limiting, invalid credentials, malformed JSON, token leakage, and response consistency.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="forgot password api test account enumeration, rate limiting, reset token leakage in response, host header poisoning, email parameter pollution, and replay.">
+            <label class="check-row" for="cb-12-1">
+              <input type="checkbox" id="cb-12-1" data-check-id="cb-12-1" />
+              <span class="item-title">Forgot password API</span>
+            </label>
+            <div class="item-detail"><p>Test account enumeration, rate limiting, reset token leakage in response, host header poisoning, email parameter pollution, and replay.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="reset password api test token expiry, token reuse, token tampering, weak password acceptance, old password reuse, race condition, and session invalidation.">
+            <label class="check-row" for="cb-12-2">
+              <input type="checkbox" id="cb-12-2" data-check-id="cb-12-2" />
+              <span class="item-title">Reset password API</span>
+            </label>
+            <div class="item-detail"><p>Test token expiry, token reuse, token tampering, weak password acceptance, old password reuse, race condition, and session invalidation.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="otp api test otp brute force, expiry, reuse, resend limits, null/000000 values, code leakage in response, and verification for wrong user/session.">
+            <label class="check-row" for="cb-12-3">
+              <input type="checkbox" id="cb-12-3" data-check-id="cb-12-3" />
+              <span class="item-title">OTP API</span>
+            </label>
+            <div class="item-detail"><p>Test OTP brute force, expiry, reuse, resend limits, null/000000 values, code leakage in response, and verification for wrong user/session.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="profile update api test mass assignment, stored xss, email/phone verification bypass, unauthorized field update, and csrf if cookie-based.">
+            <label class="check-row" for="cb-12-4">
+              <input type="checkbox" id="cb-12-4" data-check-id="cb-12-4" />
+              <span class="item-title">Profile update API</span>
+            </label>
+            <div class="item-detail"><p>Test mass assignment, stored XSS, email/phone verification bypass, unauthorized field update, and CSRF if cookie-based.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="file upload api test file type, double extension, mime mismatch, magic bytes, svg/html xss, large file, unauthorized upload, and direct file access.">
+            <label class="check-row" for="cb-12-5">
+              <input type="checkbox" id="cb-12-5" data-check-id="cb-12-5" />
+              <span class="item-title">File upload API</span>
+            </label>
+            <div class="item-detail"><p>Test file type, double extension, MIME mismatch, magic bytes, SVG/HTML XSS, large file, unauthorized upload, and direct file access.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="download/export api test idor on file ids, path traversal, excessive export, pii leakage, expired signed urls, and access after logout.">
+            <label class="check-row" for="cb-12-6">
+              <input type="checkbox" id="cb-12-6" data-check-id="cb-12-6" />
+              <span class="item-title">Download/export API</span>
+            </label>
+            <div class="item-detail"><p>Test IDOR on file IDs, path traversal, excessive export, PII leakage, expired signed URLs, and access after logout.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="search/filter api test injection, excessive data exposure, pagination abuse, unauthorized filters, and performance/resource limits.">
+            <label class="check-row" for="cb-12-7">
+              <input type="checkbox" id="cb-12-7" data-check-id="cb-12-7" />
+              <span class="item-title">Search/filter API</span>
+            </label>
+            <div class="item-detail"><p>Test injection, excessive data exposure, pagination abuse, unauthorized filters, and performance/resource limits.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="admin api test low-privilege access, forced browsing, bfla, role tampering, bulk action abuse, and method-based bypass.">
+            <label class="check-row" for="cb-12-8">
+              <input type="checkbox" id="cb-12-8" data-check-id="cb-12-8" />
+              <span class="item-title">Admin API</span>
+            </label>
+            <div class="item-detail"><p>Test low-privilege access, forced browsing, BFLA, role tampering, bulk action abuse, and method-based bypass.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="webhook/callback api test signature validation, replay protection, callback tampering, ssrf through callback urls, and fail-open behavior.">
+            <label class="check-row" for="cb-12-9">
+              <input type="checkbox" id="cb-12-9" data-check-id="cb-12-9" />
+              <span class="item-title">Webhook/callback API</span>
+            </label>
+            <div class="item-detail"><p>Test signature validation, replay protection, callback tampering, SSRF through callback URLs, and fail-open behavior.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-13" data-section-title="quick api payload / manipulation reference">
+      <details open>
+        <summary>
+          <span>Quick API Payload / Manipulation Reference</span>
+          <span class="badge">10 items</span>
+        </summary>
+        
+        <ul class="checklist">
+          
+          <li class="check-item" data-text="bola / idor change ids: /users/1001 → /users/1002, ?user_id=1002, {&quot;userid&quot;:1002}, x-user-id: 1002.">
+            <label class="check-row" for="cb-13-0">
+              <input type="checkbox" id="cb-13-0" data-check-id="cb-13-0" />
+              <span class="item-title">BOLA / IDOR</span>
+            </label>
+            <div class="item-detail"><p>Change IDs: /users/1001 → /users/1002, ?user_id=1002, {&quot;userId&quot;:1002}, X-User-ID: 1002.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="mass assignment add fields: isadmin=true, role=admin, status=active, verified=true, plan=premium, balance=99999, permissions=[admin].">
+            <label class="check-row" for="cb-13-1">
+              <input type="checkbox" id="cb-13-1" data-check-id="cb-13-1" />
+              <span class="item-title">Mass assignment</span>
+            </label>
+            <div class="item-detail"><p>Add fields: isAdmin=true, role=admin, status=active, verified=true, plan=premium, balance=99999, permissions=[admin].</p></div>
+          </li>
+        
+          <li class="check-item" data-text="jwt tampering decode jwt, change role/user_id/tenant_id/exp, try alg=none only in authorized testing, then replay.">
+            <label class="check-row" for="cb-13-2">
+              <input type="checkbox" id="cb-13-2" data-check-id="cb-13-2" />
+              <span class="item-title">JWT tampering</span>
+            </label>
+            <div class="item-detail"><p>Decode JWT, change role/user_id/tenant_id/exp, try alg=none only in authorized testing, then replay.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="cors send origin: https://evil.example and check access-control-allow-origin and access-control-allow-credentials behavior.">
+            <label class="check-row" for="cb-13-3">
+              <input type="checkbox" id="cb-13-3" data-check-id="cb-13-3" />
+              <span class="item-title">CORS</span>
+            </label>
+            <div class="item-detail"><p>Send Origin: https://evil.example and check Access-Control-Allow-Origin and Access-Control-Allow-Credentials behavior.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="ssrf try url fields with http://127.0.0.1, http://localhost, http://169.254.169.254, and burp collaborator url.">
+            <label class="check-row" for="cb-13-4">
+              <input type="checkbox" id="cb-13-4" data-check-id="cb-13-4" />
+              <span class="item-title">SSRF</span>
+            </label>
+            <div class="item-detail"><p>Try URL fields with http://127.0.0.1, http://localhost, http://169.254.169.254, and Burp Collaborator URL.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="http parameter pollution send duplicate parameters: ?id=1&amp;id=2 or email=victim@test.com&amp;email=attacker@test.com.">
+            <label class="check-row" for="cb-13-5">
+              <input type="checkbox" id="cb-13-5" data-check-id="cb-13-5" />
+              <span class="item-title">HTTP Parameter Pollution</span>
+            </label>
+            <div class="item-detail"><p>Send duplicate parameters: ?id=1&amp;id=2 or email=victim@test.com&amp;email=attacker@test.com.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="rate-limit bypass try changing ip headers (x-forwarded-for), user-agent, device id, email case, phone format, endpoint version, or account rotation.">
+            <label class="check-row" for="cb-13-6">
+              <input type="checkbox" id="cb-13-6" data-check-id="cb-13-6" />
+              <span class="item-title">Rate-limit bypass</span>
+            </label>
+            <div class="item-detail"><p>Try changing IP headers (X-Forwarded-For), user-agent, device ID, email case, phone format, endpoint version, or account rotation.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="method override try x-http-method-override: delete, x-method-override: put, or _method=patch on restricted endpoints.">
+            <label class="check-row" for="cb-13-7">
+              <input type="checkbox" id="cb-13-7" data-check-id="cb-13-7" />
+              <span class="item-title">Method override</span>
+            </label>
+            <div class="item-detail"><p>Try X-HTTP-Method-Override: DELETE, X-Method-Override: PUT, or _method=PATCH on restricted endpoints.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="graphql if present try introspection query, deep nesting, batching, unauthorized fields, and idor in object arguments.">
+            <label class="check-row" for="cb-13-8">
+              <input type="checkbox" id="cb-13-8" data-check-id="cb-13-8" />
+              <span class="item-title">GraphQL if present</span>
+            </label>
+            <div class="item-detail"><p>Try introspection query, deep nesting, batching, unauthorized fields, and IDOR in object arguments.</p></div>
+          </li>
+        
+          <li class="check-item" data-text="error handling send malformed json, wrong data types, missing fields, invalid enum values, and oversized payloads to check for stack traces.">
+            <label class="check-row" for="cb-13-9">
+              <input type="checkbox" id="cb-13-9" data-check-id="cb-13-9" />
+              <span class="item-title">Error handling</span>
+            </label>
+            <div class="item-detail"><p>Send malformed JSON, wrong data types, missing fields, invalid enum values, and oversized payloads to check for stack traces.</p></div>
+          </li>
+        
+        </ul>
+      </details>
+    </section>
+    
+    <section class="category" id="section-14" data-section-title="reference">
+      <details open>
+        <summary>
+          <span>Reference</span>
+          <span class="badge">0 items</span>
+        </summary>
+        <p class="section-note">Primary mapping: OWASP API Security Top 10 2023 - API1 through API10. This document keeps the items practical and execution-focused rather than theoretical.</p>
+        <ul class="checklist">
+          
+        </ul>
+      </details>
+    </section>
+    
+    </main>
+  </div>
+
+  <footer>
+    <p>Checklist progress is saved locally in your browser using localStorage. No data is sent anywhere.</p>
+  </footer>
+
+  <script>
+    const storageKey = 'api-vapt-checklist-state-v1';
+    const themeKey = 'api-vapt-checklist-theme-v1';
+
+    function getChecks() { return Array.from(document.querySelectorAll('input[type="checkbox"][data-check-id]')); }
+
+    function saveState() {
+      const state = {};
+      getChecks().forEach(cb => state[cb.dataset.checkId] = cb.checked);
+      localStorage.setItem(storageKey, JSON.stringify(state));
+      updateProgress();
+    }
+
+    function loadState() {
+      const state = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      getChecks().forEach(cb => {
+        cb.checked = !!state[cb.dataset.checkId];
+        cb.closest('.check-item').classList.toggle('done', cb.checked);
+        cb.addEventListener('change', () => {
+          cb.closest('.check-item').classList.toggle('done', cb.checked);
+          saveState();
+        });
+      });
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const checks = getChecks();
+      const done = checks.filter(cb => cb.checked).length;
+      document.getElementById('doneCount').textContent = done;
+      document.getElementById('totalCount').textContent = checks.length;
+      document.getElementById('progressBar').style.width = checks.length ? ((done / checks.length) * 100) + '%' : '0%';
+    }
+
+    function setupSearch() {
+      const search = document.getElementById('searchBox');
+      search.addEventListener('input', () => {
+        const q = search.value.trim().toLowerCase();
+        document.querySelectorAll('.category').forEach(section => {
+          let visibleCount = 0;
+          const titleMatch = section.dataset.sectionTitle.includes(q);
+          section.querySelectorAll('.check-item').forEach(item => {
+            const match = !q || titleMatch || item.dataset.text.includes(q);
+            item.classList.toggle('hidden', !match);
+            if (match) visibleCount++;
+          });
+          section.classList.toggle('hidden', q && visibleCount === 0 && !titleMatch);
+          if (q && (visibleCount > 0 || titleMatch)) section.querySelector('details').open = true;
+        });
+      });
+    }
+
+    document.getElementById('expandBtn').addEventListener('click', () => {
+      const details = Array.from(document.querySelectorAll('details'));
+      const shouldOpen = details.some(d => !d.open);
+      details.forEach(d => d.open = shouldOpen);
+      document.getElementById('expandBtn').textContent = shouldOpen ? 'Collapse all' : 'Expand all';
+    });
+
+    document.getElementById('darkBtn').addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem(themeKey, document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Clear all checked items on this browser?')) return;
+      getChecks().forEach(cb => { cb.checked = false; cb.closest('.check-item').classList.remove('done'); });
+      localStorage.removeItem(storageKey);
+      updateProgress();
+    });
+
+    if (localStorage.getItem(themeKey) === 'dark') document.body.classList.add('dark');
+    loadState();
+    setupSearch();
+  </script>
+</body>
+</html>
